@@ -4,19 +4,19 @@ pipeline {
         skipStagesAfterUnstable()
     }
     stages {
-        stage('BuildStaging’) { 
+        stage('BuildStaging') { 
             steps { 
-                echo ‘creating infra for staging’ 
+                echo 'creating infra for staging' 
             }
         }
-        stage(’DeployStaging’){
+        stage('DeployStaging'){
             steps {
-                echo ‘deploying application on staging environment’ 
+                echo 'deploying application on staging environment' 
             }
         }
-        stage(‘ValidateStageDeployment’) {
+        stage('ValidateStageDeployment') {
             steps {
-                echo ‘validate deployment on staging’
+                echo 'validate deployment on staging'
             }
         }
     }
