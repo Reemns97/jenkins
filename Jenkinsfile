@@ -1,20 +1,31 @@
 pipeline {
-    agent { docker { image 'bryandollery/terraform-packer-aws-alpine' } }
-    options {
-        skipStagesAfterUnstable()
+
+    agent {
+        docker {
+            image 'bryandollery/alpine-docker'
+        }
     }
     stages {
-    stage('CreateDockerFile'){
-	    steps {
-		sh """echo 'FROM bryandollery/terraform-packer-aws-alpine' > '/Dockerfile'"""
-		sh """echo 'RUN echo aa > /Manifest.txt' >> '/Dockerfile'"""   
-	}
-	}
-   stage('BuildDockerfile') {
+        stage ('generate manifest') {
             steps {
-		sh 'docker build --tag reem:\${BUILD_NUMBER /}'
-                echo "Done ${cat /Manifest.txt}"
+                sh """
+cat <<EOF > ./manifest.txt
+name: ${JOB_NAME}
+time: ${currentBuild.startTimeInMillis}
+build #: ${BUILD_NUMBER}
+EOF
+"""
             }
         }
+        stage ('build') {
+            steps {
+                sh "docker build --tag manifest-holder:latest ."
+            }
         }
-}
+        stage ('test') {
+            steps {
+                sh "docker run --rm manifest-holder"
+            }
+        }
+    }
+} 
