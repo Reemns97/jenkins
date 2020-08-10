@@ -1,23 +1,20 @@
-pipeline { 
+pipeline {
     agent { docker { image 'bryandollery/terraform-packer-aws-alpine' } }
     options {
         skipStagesAfterUnstable()
     }
     stages {
-        stage('BuildStaging') { 
-            steps { 
-                echo 'creating infra for staging'
-            }
-        }
-        stage('DeployStaging'){
+    stage('CreateDockerFile'){
+	    steps {
+		sh """echo 'FROM bryandollery/terraform-packer-aws-alpine' > '/Dockerfile'"""
+		sh """echo 'RUN echo aa > /Manifest.txt' >> '/Dockerfile'"""   
+	}
+	}
+   stage('BuildDockerfile') {
             steps {
-                echo 'deploying application on staging environment'
+		sh 'docker build --tag reem:\${BUILD_NUMBER /}'
+                echo "Done ${cat /Manifest.txt}"
             }
         }
-        stage('ValidateStageDeployment') {
-            steps {
-                echo 'validate deployment on staging'
-            }
         }
-    }
 }
