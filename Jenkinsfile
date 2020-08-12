@@ -1,49 +1,27 @@
 pipeline {
-
-    agent {
-        docker {
-            image 'bryandollery/alpine-docker'
-            args "-u root"
-        }
+  agent {
+    docker {
+      image "bryandollery/terraform-packer-aws-alpine"
+      args "-u root --entrypoint='' "
     }
-    stages {
-        stage ('generate manifest') {
-            steps {
-                sh """
-cat <<EOF > ./manifest.txt
-name: ${JOB_NAME}
-time: ${currentBuild.startTimeInMillis}
-build #: ${BUILD_NUMBER}
-commit: ${GIT_COMMIT}
-url: ${GIT_URL}
-EOF
-"""
-            }
-        }
-        stage ('build') {
-            steps {
-                sh "docker build --tag manifest-holder:latest ."
-                sh "docker tag manifest-holder manifest-holder:${BUILD_NUMBER}"
-                sh "docker tag manifest-holder reem/manifest-holder:latest"
-                sh "docker tag manifest-holder reem/manifest-holder:${BUILD_NUMBER}"
-            }
-        }
-        stage ('test') {
-            steps {
-                sh "docker run --rm manifest-holder"
-            }
-        }
-        stage ('release') {
-            environment {
-                CREDS = credentials('reem-docker-hub-token')
-            }
-            steps {
-                sh "whoami"
-                sh "docker login -u ${CREDS_USR} -p ${CREDS_PSW}"
-                sh "docker push reem/manifest-holder:${BUILD_NUMBER}"
-                sh "docker push reem/manifest-holder:latest"
-            }
-        }
+  }
+  environment {
+    CREDS = credentials('Reem-creds')
+    AWS_ACCESS_KEY_ID = "${CREDS_USR}"
+    AWS_SECRET_ACCESS_KEY = "${CREDS_PSW}"
+    OWNER = 'Reem'
+    PROJECT_NAME = 'web-server'
+  }
+  stages {
+    stage("build") {
+      steps {
+        sh 'packer build packer.json'
+      }
     }
+  }
+post {
+    success {
+        build quietPeriod: 0, wait: false, job: 'Reem- jenkins'  
+    }
+  }
 }
-
