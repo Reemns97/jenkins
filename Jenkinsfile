@@ -21,7 +21,7 @@ pipeline {
   }
 post {
     success {
-        build quietPeriod: 0, wait: false, job: 'Reem- jenkins'  
+        build quietPeriod: 0, wait: false, job: 'Reem- jenkins-tf'  
     }
   }
 }
